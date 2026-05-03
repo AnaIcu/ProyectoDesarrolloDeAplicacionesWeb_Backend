@@ -16,9 +16,7 @@ Dado que la carpeta `node_modules` no está incluida en el repositorio, es neces
 1. Clonar el repositorio:
 git clone <https://github.com/AnaIcu/ProyectoDesarrolloDeAplicacionesWeb_Backend/tree/semana3>
 
-2. Instalar dependencias:
-
-<npm install>
+2. Instalar dependencias: npm install
 
 ## Ejecución del proyecto
 
@@ -28,11 +26,7 @@ git clone <https://github.com/AnaIcu/ProyectoDesarrolloDeAplicacionesWeb_Backend
 
 ## Autenticación
 
-El backend utiliza un middleware de autorización. Todas las peticiones deben incluir el siguiente header:
-
-------------------------
-Authorization: 123456
-------------------------
+El backend utiliza un middleware de autorización. Todas las peticiones deben incluir el siguiente header: Authorization: 123456
 
 Si no se incluye este header o es incorrecto, el servidor responderá con un error 401 (Unauthorized).
 
