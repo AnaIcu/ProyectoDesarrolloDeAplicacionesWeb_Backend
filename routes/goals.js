@@ -1,39 +1,58 @@
 var express = require('express');
 var router = express.Router();
+var GoalSchema = require('../models/goal');
 
-let goals = [
-  { id_: 1, name: 'Goal 1', description: 'Description of Goal 1', duedate: '2024-07-01' },
-  { id_: 2, name: 'Goal 2', description: 'Description of Goal 2', duedate: '2024-07-02' },
-  { id_: 3, name: 'Goal 3', description: 'Description of Goal 3', duedate: '2024-07-03' }
-];
-
-router.get('/getGoals', (req, res) => {
-  res.status(200).json(goals);
+router.get('/getGoals', async function(req, res, next) {
+  
+  try {
+    let response = await GoalSchema.find({});
+    return res.status(200).json(response);
+  } catch (err) {
+    res.status(500).json({
+        error: err.message || "Error fetching goals"
+    });
+  }
 });
 
-router.post('/addGoal', (req, res) => {
-  const { name, description, duedate } = req.body;
-  if(name && description && duedate) {
-     const newGoal = { 
-    id_: Math.floor(Math.random() * 1000) + 1, 
-    name, 
-    description, 
-    duedate 
-  };
-  goals.push(newGoal);
-  res.status(200).json(newGoal);
-} else {
-  res.status(400).json({ error: 'Please provide all required fields' });
-}
-});
+router.post('/addGoal', async function(req, res, next) {
 
-router.delete('/removeGoal/:id', (req, res) => {
-  if(req.params && req.params.id && !isNaN(req.params.id)) {
-    const goalId = parseInt(req.params.id);
-    goals = goals.filter(goal => goal.id_ !== goalId);
-    res.status(200).json({ message: `Goal with id ${goalId} deleted` });
+  if(req.body && req.body.name && req.body.description && req.body.duedate){
+    try {
+      req.body.duedate = new Date(req.body.duedate);
+        let goal = new GoalSchema(req.body);
+        let response = await goal.save();
+        return res.status(200).json(response);
+    } catch (err) {
+      res.status(500).json({
+        error: err.message || "Error saving goal"
+      });
+    }
   } else {
-    res.status(400).json({ error: 'Invalid goal ID' });
+    res.status(400).json({
+      error: "Missing required fields: name, description, duedate"
+    });
+  }
+});
+
+
+router.delete('/removeGoal/:id', async function(req, res, next) {
+
+  if(req.params && req.params.id){
+    let id = req.params.id;
+    try {
+      await GoalSchema.findByIdAndDelete(id);
+      return res.status(200).json({
+        message: "Goal removed successfully"
+      });
+    } catch (err) {
+      res.status(500).json({
+          error: err.message || "Error removing goal"
+      });
+    }
+  } else {
+      res.status(400).json({
+          error: "Missing required fields: id"
+      });
   }
 });
 

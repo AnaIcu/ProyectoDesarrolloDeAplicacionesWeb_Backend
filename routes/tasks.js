@@ -1,39 +1,58 @@
 var express = require('express');
 var router = express.Router();
+var TaskSchema = require('../models/task');
 
-let tasks = [
-  { id_: 1, name: 'Task 1', description: 'Description of Task 1', duedate: '2024-07-01' },
-  { id_: 2, name: 'Task 2', description: 'Description of Task 2', duedate: '2024-07-02' },
-  { id_: 3, name: 'Task 3', description: 'Description of Task 3', duedate: '2024-07-03' }
-];
-
-router.get('/getTasks', (req, res) => {
-  res.status(200).json(tasks);
+router.get('/getTasks', async function(req, res, next) {
+  
+  try {
+    let response = await TaskSchema.find({});
+    return res.status(200).json(response);
+  } catch (err) {
+    res.status(500).json({
+        error: err.message || "Error fetching tasks"
+    });
+  }
 });
 
-router.post('/addTask', (req, res) => {
-  const { name, description, duedate } = req.body;
-  if(name && description && duedate) {
-    const newTask = { 
-    id_: Math.floor(Math.random() * 1000) + 1, 
-    name, 
-    description, 
-    duedate 
-  };
-  tasks.push(newTask);
-  res.status(200).json(newTask);
-} else {
-  res.status(400).json({ error: 'Please provide all required fields' });
-}
-});
+router.post('/addTask', async function(req, res, next) {
 
-router.delete('/removeTask/:id', (req, res) => {
-  if(req.params && req.params.id && !isNaN(req.params.id)) {
-    const taskId = parseInt(req.params.id);
-    tasks = tasks.filter(task => task.id_ !== taskId);
-    res.status(200).json({ message: `Task with id ${taskId} deleted` });
+  if(req.body && req.body.name && req.body.description && req.body.duedate){
+    try {
+      req.body.duedate = new Date(req.body.duedate);
+        let task = new TaskSchema(req.body);
+        let response = await task.save();
+        return res.status(200).json(response);
+    } catch (err) {
+      res.status(500).json({
+        error: err.message || "Error saving task"
+      });
+    }
   } else {
-    res.status(400).json({ error: 'Invalid task ID' });
+    res.status(400).json({
+      error: "Missing required fields: name, description, duedate"
+    });
+  }
+});
+
+
+router.delete('/removeTask/:id', async function(req, res, next) {
+
+  if(req.params && req.params.id){
+    let id = req.params.id;
+    try {
+      await TaskSchema.findByIdAndDelete(id);
+      return res.status(200).json({
+        message: "Task removed successfully"
+      });
+    } catch (err) {
+      res.status(500).json({
+          error: err.message || "Error removing task"
+      });
+    }
+  } else {
+      res.status(400).json({
+          error: "Missing required fields: id"
+      });
   }
 });
 
